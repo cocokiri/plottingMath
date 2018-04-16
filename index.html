@@ -29,15 +29,30 @@ button.addEventListener('click', function(e) {
 	var node = math.parse(inputValue);
 	
 	// this is the tree of the equation
-	node.forEach(function (node, path, parent) {
-	  switch (node.type) {
-	    case 'OperatorNode': console.log(node.type, node.op);    break;
-	    case 'ConstantNode': console.log(node.type, node.value); break;
-	    case 'SymbolNode':   console.log(node.type, node.name);  break;
-	    default:             console.log(node.type);
-	  }
+	node.traverse(function (node, path, parent) {
+		var nodeValue = "";
+		if (node.type == 'OperatorNode') {
+			nodeValue = node.op;
+		} else if (node.type == 'ConstantNode') {
+			nodeValue = node.value;
+		} else if (node.type == 'SymbolNode') {
+			nodeValue = node.name;
+		} else if (node.type == 'FunctionNode') {
+			nodeValue = node.fn;
+		}
+		
+		var newParagraoh = document.createElement("P");                       // Create a <p> element
+		var textNode = document.createTextNode("[" + node.type + ": " + nodeValue + "]"); 
+		newParagraoh.appendChild(textNode);    
+	 	document.getElementById('output-text').appendChild(newParagraoh);
+
+	  // switch (node.type) {
+	  //   case 'OperatorNode': console.log(node.type, node.op);    break;
+	  //   case 'ConstantNode': console.log(node.type, node.value); break;
+	  //   case 'SymbolNode':   console.log(node.type, node.name);  break;
+	  //   default:             console.log(node.type);
+	  // }
 	});
-	document.getElementById('output-text').innerHTML = node.toHTML();;
 });
 </script>
 
