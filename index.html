@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 	<!--<script src="math.js"></script> -->
+	<script src="math.js"></script>
+	<script async src="./MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
@@ -27,6 +30,8 @@
 
 
 <input type="textarea" name="textfield" id="input-textfield">
+= <div id="simplified"></div>
+<div id="pretty"></div>
 <button type="button" id="evaluate-button">Symbolicate</button>
 <br />
 <p id="output-text"></p>
@@ -37,10 +42,17 @@ var button = document.getElementById('evaluate-button');
 
 button.addEventListener('click', function(e) {
 	var inputValue = document.getElementById('input-textfield').value;
-	var node = math.parse(inputValue);
+	var simplifiedInput = math.simplify(inputValue);
+	document.getElementById('simplified').innerHTML = simplifiedInput;
+
+	var simplifiedLatex = simplifiedInput.toTex();
+	document.getElementById('pretty').innerHTML = '$$' + simplifiedLatex + '$$';
+
+	
+	//var node = math.parse(simplifiedInput);
 	
 	// this is the tree of the equation
-	node.traverse(function (node, path, parent) {
+	simplifiedInput.traverse(function (node, path, parent) {
 		var nodeValue = "";
 		if (node.type == 'OperatorNode') {
 			nodeValue = node.op;
@@ -56,14 +68,9 @@ button.addEventListener('click', function(e) {
 		var textNode = document.createTextNode("[" + node.type + ": " + nodeValue + "]"); 
 		newParagraoh.appendChild(textNode);    
 	 	document.getElementById('output-text').appendChild(newParagraoh);
-
-	  // switch (node.type) {
-	  //   case 'OperatorNode': console.log(node.type, node.op);    break;
-	  //   case 'ConstantNode': console.log(node.type, node.value); break;
-	  //   case 'SymbolNode':   console.log(node.type, node.name);  break;
-	  //   default:             console.log(node.type);
-	  // }
 	});
+	MathJax.Hub.Typeset()
+
 });
 </script>
 
