@@ -1,73 +1,43 @@
 import SVG from "svg.js"
+import Plot from "./plot.js"
 
-console.log("SVG", SVG);
+const P = new Plot();
+P.init(function(x) {
+    return Math.cos(x) //put in any function here
+});
+console.log(P);
 
-const PASTELLHEX = ['#a7ff74', '#ffe8e8', '#81b4ff', '#ffa9a9', '#f7ffa6', '#c5bbff', '#69faff', '#ffd29b', '#98ffc0'];
 
-//const container = new SVG("container").size(window.innerWidth, window.innerHeight);
+const fx = new SVG("fx").size(1000, 1000);
+const fxG = fx.group();
 
+document.getElementById('plot').addEventListener('mousemove', function (e) {
+    const x = e.layerX - this.offsetLeft;
+    const y = e.layerY - this.offsetTop;
+    const mouse = {x:x, y:y}
+    graphHover(P.pathGroup, mouse);
+})
 
-const pSize = 200;
-const plot = new SVG('plot').size(pSize, pSize);
+function graphHover(container, mousePos) {
+    //delete paths drawn in last frame
+    let p = document.getElementsByClassName('tempPath');
+    if (p.length > 0) {Array.from(p).forEach(e=> e.remove())};
+    const y = P.xPosToyPos(mousePos.x);
 
-const g = plot.group();
-
-g.path().attr('d', 'M 0 100 L 100 100') //sigmoidLine({from: node, to: target}))
-        .attr('stroke-width', 2)
+    container.path()
+        .attr('d', `M 0 ${y} L ${mousePos.x} ${y}`)
+        .attr('stroke-width', 1)
         .attr('stroke-opacity', 0.8)
-        .attr('stroke', `black` )
-        //.attr('fill', 'transparent')
+        .attr('stroke', `blue` )
+        .attr('class', 'tempPath')
 
-
-const INCREMENT = 0.1;
-
-const f = plotF(expCos, pSize-20);
-
-for (let i =0; i < 10/INCREMENT; i++) {
-    g.path()
-        .attr('d', `M ${i} ${pSize- f(i)} L ${i+1} ${pSize - f(i+1)}`)
-        .attr('stroke-width', 0.3)
+    container.path()
+        .attr('d', `M ${mousePos.x} ${y} L ${mousePos.x} ${P.size - 0}`)
+        .attr('stroke-width', 1)
         .attr('stroke-opacity', 0.8)
-        .attr('stroke', `black` )
-}
-
-function plotF (func, pSize) {
-    return function (x) {
-        return func(x) * pSize;
-    }
-}
-
-function expCos (x) {
-    return Math.cos(x)
-}
-
-const Plot = class {
-    constructor(size = {x: 100, y:100}) {
-
-    }
-
+        .attr('stroke', `green` )
+        .attr('class', 'tempPath')
 }
 
 
-function pathRound(d) {
-    const f = Object.assign({}, d.from);
-    const t = Object.assign({}, d.to);
 
-
-    f.x = f.normX;
-    f.y = f.normY;
-
-    t.x = t.normX;
-    t.y = t.normY;
-
-    console.log("pos", t, f + " " + d)
-
-    const dX = t.x - f.x;
-    const dY = t.y - f.y;
-
-    return `M ${f.x} ${f.y} Q ${f.x + dX/4} ${f.y - dX/10}, ${f.x + dX/2} ${f.y} T ${t.x} ${t.y}`
-
-    // return `M ${f.x} ${f.y} Q ${f.x + dX/4} ${f.y - 50}, ${f.x + dX/2} ${f.y} T ${t.x} ${t.y}`
-    //https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths
-    //"M10 80 Q 52.5 10, 95 80 T 180 80"
-}

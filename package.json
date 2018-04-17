@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "parcel-bundler": "^1.7.0",
+    "plot.js": "0.0.6",
     "svg.js": "^2.6.4"
   },
   "devDependencies": {},
