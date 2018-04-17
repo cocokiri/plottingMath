@@ -1,120 +1,43 @@
 import SVG from "svg.js"
+import Plot from "./plot.js"
 
-const PLOTPARAMS = {
-    containerID: 'plot',
-    size: 400,
-    granularity: 400, //steps -- paths drawn total
-    interval: [0, 20],
-    yRange: 2,
-    axis: [1,1,0,0] //right upper, right lower
-}
-
-const Plot = class {
-    constructor(parameters) {
-        Object.assign(this, parameters);
-        this.xRange = this.interval[1] - this.interval[0];
-        this.unitSizeX = this.size / this.xRange;
-        this.unitSizeY = this.size / this.yRange;
-        // this.incrementX = this.unitSizeX / this.gra;
-
-        this.container = new SVG(this.containerID).size(this.size * 2, this.size * 2); //random *2
-        this.pathGroup = this.container.group();
-
-        this.drawAxis()
-    }
-    drawAxis(){
-        this.pathGroup.path()
-            .attr('d', `M 0 ${this.size} L 0 0`)
-            .attr('stroke-width', 2)
-            .attr('stroke-opacity', 0.8)
-            .attr('stroke', `black` );
-
-        this.pathGroup.path()
-            .attr('d', `M 0 ${this.size} L ${this.size} ${this.size}`)
-            .attr('stroke-width', 2)
-            .attr('stroke-opacity', 0.8)
-            .attr('stroke', `black`)
-    }
-    init(func) {
-        this.f = func;
-        this.computeValues();
-        this.computePositions();
-        this.makePaths();
-    }
-    getPos() {
-        return this.pos.slice();
-    }
-    xPosToyPos(xPos) {
-        const y = P.size - this.f(xPos/this.unitSizeX) * this.unitSizeY;
-        console.log("xToY", xPos, y )
-        return y;
-    }
-    computeValues(){
-        const t = this;
-        if (!t.f) {Console.log('PLOT CLASS has not FUNCTION')};
-
-        t.Xs = new Array(t.granularity).fill(1).map((x, i) => (i-t.interval[0])  / t.unitSizeX);
-        //this.Ys = Xs.map(x => this.f(x));
-        t.values = t.Xs.map(function(e) {
-            return {x: e, y: t.f(e)}
-        });
-    }
-    computePositions() {
-        const t = this;
-        t.pos = t.values.map(function(v) {
-            return {x: v.x * t.unitSizeX, y: t.size - v.y * t.unitSizeY}
-        });
-    }
-    makePaths(pos = this.pos){
-        const t = this;
-        for (let i= 0; i < pos.length-1; i++) {
-            const v = pos[i];
-            const v2 = pos[i+1];
-            t.pathGroup.path().attr('d', `M ${v.x} ${v.y} L ${v2.x} ${v2.y}`)
-                .attr('stroke-width', 0.3)
-                .attr('stroke-opacity', 0.8)
-                .attr('stroke', `black` )
-        }
-    }
-}
-
-const P = new Plot(PLOTPARAMS);
-P.init(cos);
+const P = new Plot();
+P.init(function(x) {
+    return Math.cos(x) //put in any function here
+});
 console.log(P);
-function cos(x) {
-    return Math.cos(x);
-}
+
 
 const fx = new SVG("fx").size(1000, 1000);
 const fxG = fx.group();
-
-function graphHover(container, mousePos, plotPos) {
-        let p = document.getElementsByClassName('tempPath');
-        if (p.length > 0) {Array.from(p).forEach(e=> e.remove())};
-
-        const y = P.xPosToyPos(mousePos.x);
-        container.path()
-            .attr('d', `M 0 ${y} L ${mousePos.x} ${y}`)
-            .attr('stroke-width', 1)
-            .attr('stroke-opacity', 0.8)
-            .attr('stroke', `blue` )
-            .attr('class', 'tempPath')
-        container.path()
-            .attr('d', `M ${mousePos.x} ${y} L ${mousePos.x} ${P.size - 0}`)
-            .attr('stroke-width', 1)
-            .attr('stroke-opacity', 0.8)
-            .attr('stroke', `green` )
-            .attr('class', 'tempPath')
-}
-
-const positions = P.getPos();
 
 document.getElementById('plot').addEventListener('mousemove', function (e) {
     const x = e.layerX - this.offsetLeft;
     const y = e.layerY - this.offsetTop;
     const mouse = {x:x, y:y}
-    graphHover(P.pathGroup, mouse, positions);
+    graphHover(P.pathGroup, mouse);
 })
+
+function graphHover(container, mousePos) {
+    //delete paths drawn in last frame
+    let p = document.getElementsByClassName('tempPath');
+    if (p.length > 0) {Array.from(p).forEach(e=> e.remove())};
+    const y = P.xPosToyPos(mousePos.x);
+
+    container.path()
+        .attr('d', `M 0 ${y} L ${mousePos.x} ${y}`)
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.8)
+        .attr('stroke', `blue` )
+        .attr('class', 'tempPath')
+
+    container.path()
+        .attr('d', `M ${mousePos.x} ${y} L ${mousePos.x} ${P.size - 0}`)
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.8)
+        .attr('stroke', `green` )
+        .attr('class', 'tempPath')
+}
 
 
 
