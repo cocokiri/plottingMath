@@ -1,25 +1,9 @@
 import SVG from "svg.js"
 
-// const pSize = 200;
-// const g = plot.group();
-// //plot X and Y axis
-// g.path().attr('d', 'M 0 200 L 0 0')
-//     .attr('stroke-width', 2)
-//     .attr('stroke-opacity', 0.8)
-//     .attr('stroke', `black` )
-//
-// g.path().attr('d', 'M 0 200 L 200 200')
-//     .attr('stroke-width', 2)
-//     .attr('stroke-opacity', 0.8)
-//     .attr('stroke', `black` )
-// //.attr('fill', 'transparent')
-
-
-
 const PLOTPARAMS = {
     containerID: 'plot',
     size: 400,
-    granularity: 200, //steps -- paths drawn total
+    granularity: 400, //steps -- paths drawn total
     interval: [0, 20],
     yRange: 2,
     axis: [1,1,0,0] //right upper, right lower
@@ -27,7 +11,6 @@ const PLOTPARAMS = {
 
 const Plot = class {
     constructor(parameters) {
-
         Object.assign(this, parameters);
         this.xRange = this.interval[1] - this.interval[0];
         this.unitSizeX = this.size / this.xRange;
@@ -36,6 +19,10 @@ const Plot = class {
 
         this.container = new SVG(this.containerID).size(this.size * 2, this.size * 2); //random *2
         this.pathGroup = this.container.group();
+
+        this.drawAxis()
+    }
+    drawAxis(){
         this.pathGroup.path()
             .attr('d', `M 0 ${this.size} L 0 0`)
             .attr('stroke-width', 2)
@@ -47,13 +34,20 @@ const Plot = class {
             .attr('stroke-width', 2)
             .attr('stroke-opacity', 0.8)
             .attr('stroke', `black`)
-
     }
     init(func) {
         this.f = func;
         this.computeValues();
         this.computePositions();
         this.makePaths();
+    }
+    getPos() {
+        return this.pos.slice();
+    }
+    xPosToyPos(xPos) {
+        const y = P.size - this.f(xPos/this.unitSizeX) * this.unitSizeY;
+        console.log("xToY", xPos, y )
+        return y;
     }
     computeValues(){
         const t = this;
@@ -82,79 +76,45 @@ const Plot = class {
                 .attr('stroke', `black` )
         }
     }
-
-
-    //     for (let x=startX; x<endX; x+=increment) {
-    //         const v = {
-    //             x: x * pixPerX,
-    //             y: pSize - (f(x) * yScaler),
-    //             x2: (x+ increment) * pixPerX,
-    //             y2:  pSize - (f(x+increment) * yScaler)
-    //         }
-    // }
 }
 
 const P = new Plot(PLOTPARAMS);
 P.init(cos);
 console.log(P);
-
-
-let lastPath;
-function graphHover(x,y) {
-        let lastPath = g.path();
-        let p = document.getElementById('currentPath');
-        if (p) {p.remove()}
-        const calcY = pSize - cos(x/ppX) * 100;
-    lastPath
-        .attr('d', `M 0 ${calcY} L ${x} ${calcY}`)
-        .attr('stroke-width', 1)
-        .attr('stroke-opacity', 0.8)
-        .attr('stroke', `black` )
-        .attr('id', 'currentPath')
-}
-
-
-
-document.getElementById('plot').addEventListener('mousemove', function (e) {
-
-    const x = e.layerX - this.offsetLeft;
-    const y = e.layerY -this.offsetTop
-    // graphHover(x,y);
-})
-
-function plotter (f, startX=0, endX=20, steps=200, pixPerX = ppX, yRange=2) {
-
-    const range = endX -startX;
-    const increment = range/steps;
-    const yScaler = pSize / yRange;
-    for (let x=startX; x<endX; x+=increment) {
-        const v = {
-            x: x * pixPerX,
-            y: pSize - (f(x) * yScaler),
-            x2: (x+ increment) * pixPerX,
-            y2:  pSize - (f(x+increment) * yScaler)
-        }
-        g.path()
-            .attr('d', `M ${v.x} ${v.y} L ${v.x2} ${v.y2}`)
-            .attr('stroke-width', 0.3)
-            .attr('stroke-opacity', 0.8)
-            .attr('stroke', `black` )
-    }
-
-}
-
-//plotter(cos);
-
-function plotFn (func, pSize) {
-    return function (x) {
-        return func(x);
-    }
-}
-
-
-function circumference(x) {
-    return 2 * x * Math.PI;
-}
 function cos(x) {
     return Math.cos(x);
 }
+
+const fx = new SVG("fx").size(1000, 1000);
+const fxG = fx.group();
+
+function graphHover(container, mousePos, plotPos) {
+        let p = document.getElementsByClassName('tempPath');
+        if (p.length > 0) {Array.from(p).forEach(e=> e.remove())};
+
+        const y = P.xPosToyPos(mousePos.x);
+        container.path()
+            .attr('d', `M 0 ${y} L ${mousePos.x} ${y}`)
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', 0.8)
+            .attr('stroke', `blue` )
+            .attr('class', 'tempPath')
+        container.path()
+            .attr('d', `M ${mousePos.x} ${y} L ${mousePos.x} ${P.size - 0}`)
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', 0.8)
+            .attr('stroke', `green` )
+            .attr('class', 'tempPath')
+}
+
+const positions = P.getPos();
+
+document.getElementById('plot').addEventListener('mousemove', function (e) {
+    const x = e.layerX - this.offsetLeft;
+    const y = e.layerY - this.offsetTop;
+    const mouse = {x:x, y:y}
+    graphHover(P.pathGroup, mouse, positions);
+})
+
+
+
