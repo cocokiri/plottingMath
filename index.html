@@ -2,7 +2,31 @@
 <html lang="en">
 <head>
 	<script src="math.js"></script>
-	<script async src="./MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    MathZoom: {
+      styles: {
+        "#MathJax_Zoom": {
+          "background-color": "#0000F0"
+        }
+      }
+    },
+    TeX: { 
+    	extensions: ["color.js"] 
+    },
+  	showMathMenu: false,
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX", "output/HTML-CSS"],
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+      processEscapes: true
+    },
+    "HTML-CSS": { fonts: ["TeX"] }
+  });
+</script>
+<script type="text/javascript" src="./MathJax/MathJax.js">
+</script>
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
@@ -17,7 +41,7 @@
 <link rel="stylesheet" href="style.css">
 
 
-<input type="textarea" name="textfield" id="input-textfield">
+<input type="textarea" name="textfield" id="input-textfield" value="sqrt((a+b+c+d)/1/b,6)^sqrt((a+b+c+d)/1/b,6)">
 = <div id="simplified"></div>
 <div id="pretty"></div>
 <button type="button" id="evaluate-button">Symbolicate</button>
@@ -49,9 +73,11 @@ button.addEventListener('click', function(e) {
 			nodeValue = node.name;
 		} else if (node.type == 'FunctionNode') {
 			nodeValue = node.fn;
+		} else if (node.type == 'AssignmentNode') {
+			nodeValue = '=';
 		}
 		
-		var newParagraoh = document.createElement("P");                       // Create a <p> element
+		var newParagraoh = document.createElement("P");
 		var textNode = document.createTextNode("[" + node.type + ": " + nodeValue + "]"); 
 		newParagraoh.appendChild(textNode);    
 	 	document.getElementById('output-text').appendChild(newParagraoh);
